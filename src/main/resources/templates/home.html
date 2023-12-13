@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!--<audio controls src="css/music.mp4" typeof="audio/mpeg">xxx</audio>-->
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link th:href="@{/css/bootstrap.min.css}"
+          rel="stylesheet" href="css/style3.css">
+</head>
+<body background="css/tz.png">
+<div class="container" style="max-width: 600px">
+    <div class="py-5 text-center">
+        <h1>LOGO Design</h1>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <button class="w-100 btn-secondary btn-lg" type="button"
+                    th:onclick="|location.href='@{/members/add}'|">
+                회원 가입
+            </button>
+        </div>
+
+        <div class="col">
+            <button class="w-100 btn-secondary btn-lg" type="button"
+                    th:onclick="|location.href='@{/login}'|">
+                로그인
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

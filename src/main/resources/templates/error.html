@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Error</title>
+</head>
+<body>
+<!-- 모달 -->
+<div id="errorModal" style="display: none;">
+  <p th:text="${errorMessage}"></p>
+  <button onclick="closeModalAndGoBack()">확인</button>
+</div>
+
+<script th:inline="javascript">
+  /* 모달 닫기 함수 */
+  function closeModalAndGoBack() {
+    document.getElementById('errorModal').style.display = 'none';
+    history.back();
+  }
+
+  /* 페이지 로드 시 모달 표시 */
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('errorModal').style.display = 'block';
+
+  });
+</script>
+</body>
+</html>

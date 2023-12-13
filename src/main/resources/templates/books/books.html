@@ -1,0 +1,201 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link th:href="@{/css/bootstrap.min.css}"
+          href="../css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
+    .zero-quantity{
+        background-color: #f2f2f2; /* 회색 음영 */
+    }
+</style>
+<tbody>
+
+<div class="container" style="max-width: 600px">
+    <div class="py-5 text-center">
+        <h2>도서 관리 프로그램</h2>
+    </div>
+
+    <!-- 검색 폼 -->
+    <form th:action="@{/books/search}" method="get" style="text-align: center; padding-bottom: 15px" id="searchForm" onsubmit="searchBooks();">
+        <select name="searchType" id="searchType" style="width: 15%; height: 30px;">
+            <option value="author">저자</option>
+            <option value="bookName">제목</option>
+            <option value="bookCode">코드</option>
+        </select>
+        <input style="width: 60%" type="text" name="keyword" id="keyword" placeholder="검색어를 입력하세요.">
+        <button id="searchButton" style="width: 10%" class="btn btn-secondary btn-sm" type="submit">검색</button>
+    </form>
+
+    <div class="row">
+        <div class="col">
+            <button class="btn btn-primary float-end"
+                    onclick="location.href='addForm.html'"
+                    th:onclick="|location.href='@{/books/add}'|"
+                    type="button">
+                도서 등록
+            </button>
+            <button class="btn btn-danger float-start" onclick="deleteSelectedBooks()">
+                선택 삭제
+            </button>
+        </div>
+    </div>
+
+    <hr class="my-4">
+    <div>
+        <table class="table">
+            <thead>
+            <tr class="text-center">
+                <th>
+                    <input type="checkbox" id="selectAll" onclick="selectAllBooks()" />
+                </th>
+                <th>도서 아이디</th>
+                <th>도서명</th>
+                <th>도서 장르</th>
+                <th>저자</th>
+                <th>가능 수량</th>
+                <th>상태</th>
+            </tr>
+            </thead>
+                <tbody>
+                    <tr th:each="book : ${books}" th:class="${book.bookQuantity eq 0 ? 'zero-quantity' : ''}" style="text-align: center" class="ss">
+                        <td class="text-center">
+                            <input type="checkbox" name="selectedBooks" th:value="${book.id}" />
+                            <input type="hidden" name="actions" th:value="borrow" />
+                            <input type="hidden" name="actions" th:value="return" />
+                        </td>
+                        <td><a th:text="${book.id}"></a></td>
+                        <td class="text-center"><a href="book.html" th:href="@{|/books/${book.id}|}" th:text="${book.bookName}"></a></td>
+                        <td th:text="${book.genre}"></td>
+                        <td th:text="${book.author}"></td>
+                        <td th:text="${book.bookQuantity}"></td>
+                        <td class="text-center" th:inline="text">
+                            <form th:action="@{|/books/${book.id}/borrow|}" method="post">
+                                <button type="submit" class="btn btn-success" onclick="displayModal('대출하시겠습니까?')">대출</button>
+                            </form>
+                            <form th:action="@{|/books/${book.id}/return|}" method="post">
+                                <button type="submit" class="btn btn-warning" onclick="return confirm('반납하시겠습니까?')">반납</button>
+                            </form>
+                        </td>
+                    </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    /* 모달 표시 함수 */
+    function displayModal(errorMessage){
+        document.getElementById('errorModal').style.display = 'block';
+
+        alert(errorMessage);
+    }
+
+    /* 모달 닫기 함수 */
+    function closeModal(){
+        document.getElementById('errorModal').style.display = 'none';
+        history.back();
+    }
+
+    /* 전체 선택 */
+    function selectAllBooks(){
+        var checkboxes = document.getElementsByName('selectedBooks');
+        var selectAllCheckbox = document.getElementById('selectAll');
+
+        for (var i = 0; i < checkboxes.length; i++){
+            checkboxes[i].checked = selectAllCheckbox.checked;
+        }
+    }
+
+    /* 선택된 도서 삭제 */
+    function deleteSelectedBooks(){
+        var checkboxes = document.getElementsByName('selectedBooks');
+        var selectedBooks = [];
+
+        for( var i=0; i < checkboxes.length; i++){
+            if(checkboxes[i].checked){
+                selectedBooks.push(checkboxes[i].value);
+            }
+        }
+
+        if(selectedBooks.length > 0){
+            // 선택된 도서를 삭제할 컨트롤러로 요청을 보냄
+            // 선택된 도서 ID를 배열로 전송하여 컨트롤러에서 처리
+            let form = document.createElement('form');
+
+            form.method = 'POST';
+            form.action = '/books/delete-selected';
+            form.style.display = 'none';
+
+            for(var j=0; j < selectedBooks.length; j++){
+                let input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selectedBooks';
+                input.value = selectedBooks[j];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }else {
+            // 선택된 도서가 없다는 메시지를 표시하거나 다른 동작을 수행
+            alert('삭제할 도서를 선택하세요.');
+        }
+    }
+
+    /* 12.12
+    function searchBooks(){
+        let searchType = document.getElementById('searchType').value;
+        let keyword = document.getElementById('keyword').value;
+
+        // 검색어와 검색 타입을 서버로 전송
+        fetch('/books/search?searchType=' + searchType + '&keyword=' + keyword, {
+            method: 'GET'
+        })
+            .then(response => response.json())
+            .then(data => {
+                // 여기서 받은 데이터를 활용하여 필요동작 수행
+                console.log(data);
+            })
+            .catch(error => console.error('Error', error));
+    }*/
+
+    async function searchBooks() {
+        console.log('searchBooks 함수 실행');
+        let searchType = document.getElementById('searchType').value;
+        let keyword = document.getElementById('keyword').value;
+
+        try {
+            let response = await fetch(`/books/search?searchType=${searchType}&keyword=${keyword}`, {
+                method: 'GET'
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            let data = await response.json();
+            // 여기서 받은 데이터를 활용하여 필요한 동작 수행
+            console.log(data);
+
+            // 간단한 예시: bookName이 null인 경우에 대한 처리
+            if (data.content && data.content.length > 0) {
+                const bookName = data.content[0].bookName || 'N/A';
+                console.log('Book Name:', bookName);
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>
+</tbody>
+<!-- 모달 템플릿 -->
+<div id="errorModal" style="display: none;">
+    <div>
+        <span id="errorMessage"></span>
+        <button onclick="closeModal()" type="hidden">닫기</button>
+    </div>
+</div>
+</html>
